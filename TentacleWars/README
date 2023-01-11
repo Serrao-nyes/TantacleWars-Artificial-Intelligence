@@ -1,4 +1,2 @@
-Run the following to install
-
-python setup.py install 
-
+Run the "TPFinal.py" to launch the game.
+To launch the game you must have installed pygame library
