@@ -1,2 +1,18 @@
 Run the "TPFinal.py" to launch the game.
 To launch the game you must have installed pygame library
+
+
+
+Come avviare gioco per la prima volta con installazione pip per python2 :
+
+curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py
+
+python2 get-pip.py
+
+ora installa pygame con pip per python2 con:
+
+python2 -m pip install pygame
+
+adesso puoi eseguire:
+
+python2 TPFinal.py

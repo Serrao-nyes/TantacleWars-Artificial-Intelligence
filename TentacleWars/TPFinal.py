@@ -9,6 +9,7 @@ import time
 import heapq
 from creditPage import displayCredit
 
+# Definizione dei colori come costanti
 GREEN = (47,171,51)
 RED = (200,0,0)
 GRAY = (55,55,55)
@@ -17,7 +18,7 @@ WARMYELLOW = (255,255,85)
 
 class CellWar(object):
     def __init__(self):
-        # For statistics and achievement page purpose
+        # Inizializzazione delle statistiche e dei punteggi 
         self.gamesPlayed = 0
         self.loses = 0
         self.enemyKilled = 0
@@ -26,20 +27,22 @@ class CellWar(object):
         self.totalAssist = 0
         self.achievement = [self.gamesPlayed,self.loses,self.enemyKilled,\
                          self.needleLeft,self.totalMerge,self.totalAssist]
-        self.fadeTime = 3000 # music fadeout time
+        self.fadeTime = 3000 # Tempo di dissolvenza della musica
 
+    # Metodo per salvare e caricare i punteggi
     def saveLoad(self):
         self.achievement = [self.gamesPlayed,self.loses,self.enemyKilled,\
                          self.needleLeft,self.totalMerge,self.totalAssist]
         outFile1 = open('myLevelCleared.txt','wb')
         outFile2 = open('myAchievement.txt','wb')
         pickle.dump(self.levelCleared,outFile1)
-############################ MAKE ACHIEVEMENT ###############################
-############################ HIGH SCORE?? ###############################
+    ############################ MAKE ACHIEVEMENT ###############################
+    ############################ HIGH SCORE?? ###############################
         pickle.dump(self.achievement,outFile2)
         outFile1.close()
         outFile2.close()
 
+    # Metodo per leggere i punteggi salvati
     def readFile(self):
         inFile1 = open('myLevelCleared.txt','rb')
         inFile2 = open('myAchievement.txt','rb')
@@ -49,157 +52,237 @@ class CellWar(object):
          self.totalMerge,self.totalAssist] = self.achievement
 
     ###################################################
-    # SAVE AND LOAD PREVIOUS RECORD! IMPORTANT!
+    # SALVA E CARICA IL RECORD PRECEDENTE! IMPORTANTE!
     ###################################################
-    
-    def mousePressed(self,event):
+
+    def mousePressed(self, event):
+        # Verifica se il gioco e' in esecuzione o in modalita' tutorial
         if self.mode == "Running" or self.mode == "Tutorial":
-            self.recordPos = None # refresh everytime with NEW click
-            needlex,needley,imagex,imagey = 647,643,700,700
-            x,y = self.mousePos
-            if self.needleMode: # mouse is a needle now
-                self.findInjectedCell((x,y))
+            # Resetta la posizione del record ad ogni nuovo clic
+            self.recordPos = None
+            # Definizione delle coordinate per il pulsante dell'ago e dell'immagine dell'ago
+            needlex, needley, imagex, imagey = 647, 643, 700, 700
+            # Ottieni le coordinate del mouse
+            x, y = self.mousePos
+            # Se siamo in modalita' ago
+            if self.needleMode:
+                # Trova la cella iniettata
+                self.findInjectedCell((x, y))
                 return
+            # Se il mouse e' sopra il pulsante dell'ago
             if needlex <= x <= imagex and needley <= y <= imagey:
+                # Cambia l'icona del mouse all'immagine dell'ago e attiva la modalita' ago
                 self.mouseFigure = self.needleImg
                 self.needleMode = True
                 return
-            self.lineDrawn = [(x,y),(x,y),False]
+            # Se il mouse e' sopra una cella verde
+            self.lineDrawn = [(x, y), (x, y), False]  # Inizializza la lista per disegnare la linea
             for cell in self.cellList:
                 if cell.color == GREEN:
-                    if dist(x,y,cell.x,cell.y,cell.radius):
-                        self.lineDrawn = [(cell.x,cell.y),(cell.x,cell.y),True]
+                    # Se il mouse e' sopra la cella
+                    if dist(x, y, cell.x, cell.y, cell.radius):
+                        # Imposta la posizione iniziale e finale della linea, e indica che la cella e' stata selezionata
+                        self.lineDrawn = [(cell.x, cell.y), (cell.x, cell.y), True]
                         self.dealCell = cell
                         break
-            self.redrawAll()
+            self.redrawAll()  # Ridisegna tutto
         else:
+            # Se non siamo in modalita' di gioco, gestisci altri eventi del mouse
             self.mouseOtherMode(event)
 
-    def mouseOtherMode(self,event):
+
+    def mouseOtherMode(self, event):
+        # Se il gioco e' nella modalita' "Scegli sfondo"
         if self.mode == "Choose Background":
-            if self.bgchoice != None: # such that the choice is valid
+            # Verifica se e' stata fatta una scelta valida per lo sfondo
+            if self.bgchoice is not None:
+                # Imposta lo sfondo selezionato e passa alla modalita' "Scegli livello"
                 self.background = self.backgroundImages[self.bgchoice]
-                pygame.mixer.Sound('Confirm.wav').play(0)
+                # Riproduce un suono di conferma
+                pygame.mixer.Sound('music/Confirm.wav').play(0)
                 self.mode = "Choose Level"
+        # Se il gioco e' nella modalita' "Game Over"
         elif self.mode == "Game Over":
+            # Gestisce le scelte dopo la fine del gioco
             self.gameOverChoices(event)
+        # Se il gioco e' nella modalita' "Vittoria"
         elif self.mode == "Win":
+            # Gestisce le scelte dopo la vittoria
             self.winChoices(event)
+        # Se il gioco e' nella modalita' "Scegli livello"
         elif self.mode == "Choose Level":
+            # Identifica l'immagine del livello cliccata
             self.identifyLevelImg(event)
-        #print "Mouse Pressed"
+        # Stampa a scopo di debug
+        # print "Mouse Pressed"
 
-    def gameOverChoices(self,event):
-        if self.gameOverchoice != None:
-            self.gamesPlayed += 1
-            self.loses += 1
-            if self.gameOverchoice == 0:
-                self.chooseLevel()
-            elif self.gameOverchoice == 1:
-                self.init(self.levelChosen)
 
-    def winChoices(self,event):
-        if self.winchoice != None:
+
+    def gameOverChoices(self, event):
+        # Se e' stata effettuata una scelta durante il game over
+            if self.gameOverchoice is not None:
+                # Incrementa il numero di partite giocate e di sconfitte
+                self.gamesPlayed += 1
+                self.loses += 1
+                # Gestisce le azioni in base alla scelta effettuata
+                if self.gameOverchoice == 0:
+                    # Torna alla schermata di scelta del livello
+                    self.chooseLevel()
+                elif self.gameOverchoice == 1:
+                    # Riavvia il livello corrente
+                    self.init(self.levelChosen)
+
+    def winChoices(self, event):
+        # Se e' stata effettuata una scelta dopo la vittoria
+        if self.winchoice is not None:
+            # Incrementa il numero di partite giocate
             self.gamesPlayed += 1
-            if self.levelChosen >= 4: self.needleLeft += 1
-            #Completing level 4 or above get a needle award
+            # Se il livello superato e' il livello 4 o superiore, aggiunge un ago
+            if self.levelChosen >= 4:
+                self.needleLeft += 1
+            # Gestisce le azioni in base alla scelta effettuata
             if self.winchoice == 0:
+                # Torna alla schermata di scelta del livello
                 self.chooseLevel()
             elif self.winchoice == 1:
+                # Riavvia il livello corrente
                 self.init(self.levelChosen)
-            elif self.winchoice == 2: # click the third button
-                self.levelCleared =list(range(self.levelChosen+1))
+            elif self.winchoice == 2:  # Se viene cliccato il terzo pulsante
+                # Imposta come completati tutti i livelli fino a quello corrente
+                self.levelCleared = list(range(self.levelChosen + 1))
                 totalLevel = 7
+                # Se il livello corrente non e' l'ultimo livello, passa al successivo
                 if self.levelChosen != totalLevel:
                     self.levelChosen += 1
                     self.init(self.levelChosen)
                 else:
+                    # Torna al menu principale se tutti i livelli sono stati completati
                     self.doMainMenu()
 
-    def identifyLevelImg(self,event):
-        (x,y) = pygame.mouse.get_pos()
+
+    def identifyLevelImg(self, event):
+        # Ottiene le coordinate del mouse
+        (x, y) = pygame.mouse.get_pos()
+        # Se la pagina dei livelli e' 1-3
         if self.levelPage == "1-3":
+            # Controlla se il mouse e' sopra i bottoni per il livello finale, il menu principale o la pagina successiva
             if 252 <= x <= 415 and 243 <= y <= 397:
+                # Imposta la modalita' per scegliere il livello finale
                 self.mode = "Choose Final Level"
+                # Mostra la schermata per il livello finale 1-3
                 self.finalLevel1_3()
             elif 300 <= x <= 382 and 595 <= y <= 672:
+                # Torna al menu principale
                 self.doMainMenu()
             elif 533 <= x <= 596 and 279 <= y <= 351:
+                # Passa alla pagina dei livelli 4-6
                 self.levelPage = "4-6"
+                # Mostra la schermata di selezione dei livelli
                 self.chooseLevel()
+        # Se la pagina dei livelli e' 4-6
         elif self.levelPage == "4-6":
-            prereqLength = 3
+            prereqLength = 3  # Lunghezza necessaria per accedere ai livelli 4-6
             if len(self.levelCleared[1:]) >= prereqLength:
-                self.actLevel4_6(x,y)
+                # Mostra i livelli 4-6 come selezionabili
+                self.actLevel4_6(x, y)
             else:
-                self.unactLevel4_6(x,y)
+                # Mostra i livelli 4-6 come non selezionabili
+                self.unactLevel4_6(x, y)
         else:
-            prereqLength = 6
+            prereqLength = 6  # Lunghezza necessaria per accedere al livello 7
             if len(self.levelCleared[1:]) >= prereqLength:
-                self.actLevel7(x,y)
+                # Mostra il livello 7 come selezionabile
+                self.actLevel7(x, y)
             else:
-                self.unactLevel7(x,y)
+                # Mostra il livello 7 come non selezionabile
+                self.unactLevel7(x, y)
 
 
 
-            
-    def keyPressed(self,event):
-        print ("Key Pressed")
+
+                
+    def keyPressed(self, event):
+        print("Key Pressed")
         totalLevel = 7
+        # Se il gioco e' in esecuzione
         if self.mode == "Running":
+            # Se il tasto premuto e' 'q'
             if event.key == pygame.K_q:
+                # Ottiene il livello attuale
                 level = self.levelChosen
+                # Se il livello non e' stato completato, lo aggiunge alla lista dei livelli completati
                 if level not in self.levelCleared:
                     self.levelCleared.append(self.levelChosen)
+                # Se il livello attuale e' inferiore al livello massimo
                 if level < totalLevel:
+                    # Interrompe la riproduzione della musica corrente
                     self.music.fadeout(self.fadeTime)
+                    # Incrementa il numero di partite giocate
                     self.gamesPlayed += 1
-                    self.init(level+1)
+                    # Inizializza il livello successivo
+                    self.init(level + 1)
+        # Se il tasto premuto e' 's', salva i dati
         if event.key == pygame.K_s:
             self.saveLoad()
+        # Se il tasto premuto e' 'SPACE', legge i dati
         elif event.key == pygame.K_SPACE:
             self.readFile()
+        # Se il tasto premuto e' 'p', stampa i livelli completati
         elif event.key == pygame.K_p:
-            print (self.levelCleared)
+            print(self.levelCleared)
+        # Se il tasto premuto e' 'm', torna al menu principale
         elif event.key == pygame.K_m:
-            self.doMainMenu() # for demo purpose, go back to main menu
+            self.doMainMenu()  # a scopo dimostrativo, torna al menu principale
+            # Interrompe la riproduzione della musica corrente
             self.music.fadeout(self.fadeTime)
+        # Verifica il tasto premuto per il giudizio sulla modalita'
         self.keyPressedModeJudge(event)
 
-    def keyPressedModeJudge(self,event):
-        # different keyPress functions in different mode!
+
+    def keyPressedModeJudge(self, event):
+        # Funzioni di pressione dei tasti diverse in modalita' diverse!
         if self.mode == "Main Menu":
-            self.mainMenuKey(event)            
+            # Se il gioco e' nel menu principale, gestisce i tasti del menu principale
+            self.mainMenuKey(event)
         elif self.mode == "Choose Background":
-            print ("Use your mouse to choose!")
+            # Se il gioco e' nella scelta dello sfondo, avvisa di usare il mouse per la scelta
+            print("Usa il mouse per scegliere!")
         elif self.mode == "Choose Final Level":
+            # Se il gioco e' nella scelta del livello finale, identifica il livello selezionato
             self.identifyLevel(event)
         elif self.mode == "Achievement":
+            # Se il gioco e' nella schermata dei risultati, identifica l'azione sulla pagina dei risultati
             self.identifyAchievementPage(event)
         elif self.mode == "Credit":
+            # Se il gioco e' nella schermata dei crediti, torna al menu principale se viene premuto 'r'
             if event.key == pygame.K_r:
                 self.doMainMenu()
         elif self.mode == "Help":
+            # Se il gioco e' nella schermata di aiuto, gestisce le azioni relative alla navigazione delle pagine di aiuto
             if event.key == pygame.K_r:
-                self.doMainMenu() # if r is pressed in "help", get back to main menu
+                # Se viene premuto 'r' nella schermata di aiuto, torna al menu principale
+                self.doMainMenu()
             elif event.key == pygame.K_RIGHT:
+                # Se viene premuto il tasto freccia destra, passa alla pagina successiva dell'aiuto
                 if self.helpInd < 4:
-                    self.helpInd += 1 # maximum is 4
-                    self.screen.blit(self.helpPages[self.helpInd],(0,0))
+                    self.helpInd += 1  # massimo e' 4
+                    self.screen.blit(self.helpPages[self.helpInd], (0, 0))
             elif event.key == pygame.K_LEFT:
+                # Se viene premuto il tasto freccia sinistra, torna alla pagina precedente dell'aiuto
                 if self.helpInd > 0:
-                    self.helpInd -= 1 # minimum is 0
-                    self.screen.blit(self.helpPages[self.helpInd],(0,0))
+                    self.helpInd -= 1  # minimo e' 0
+                    self.screen.blit(self.helpPages[self.helpInd], (0, 0))
             pygame.display.update()
 
+
     def mainMenuKey(self,event):
-        sound = pygame.mixer.Sound('Thip.wav')
+        #sound = pygame.mixer.Sound('music/Thip.wav')
         if event.key == pygame.K_DOWN:
             self.menuNumber += 1
-            sound.play(0)
+            #sound.play(0)
         elif event.key == pygame.K_UP:
             self.menuNumber -= 1
-            sound.play(0)
+            #sound.play(0)
         elif event.key == pygame.K_RETURN:
             self.runMenuOption(self.menuOption[self.menuNumber])
         self.menuNumber %= len(self.menuOption)
@@ -277,39 +360,77 @@ class CellWar(object):
             self.clock.tick(self.fps)
 
     
-    def findInjectedCell(self,x,y):
-        adjust = 20*math.sqrt(2) # the adjusted position of x and y
+    def findInjectedCell(self, x, y):
+        """
+        Trova la cella iniettata nella posizione del mouse durante la modalita' ago.
+
+        Parametri:
+            x (int): La coordinata x della posizione del mouse.
+            y (int): La coordinata y della posizione del mouse.
+        """
+        # Calcola l'aggiustamento per le coordinate x e y
+        adjust = 20 * math.sqrt(2)
+        # Cicla attraverso tutte le celle nella lista delle celle
         for cell in self.cellList:
-            if dist(cell.x,cell.y,x-adjust,y+adjust,30):
+            # Controlla se la distanza tra la posizione del mouse e il centro della cella e' inferiore a 30
+            if dist(cell.x, cell.y, x - adjust, y + adjust, 30):
+                # Se ci sono ancora aghi disponibili, imposta la variabile getNeedle della cella su True
                 if self.needleLeft > 0:
                     cell.getNeedle = True
+                    # Decrementa il numero di aghi rimanenti
                     self.needleLeft -= 1
+                # Esci dal ciclo una volta trovata la cella iniettata
                 break
+        # Disattiva la modalita' ago dopo aver trovato la cella iniettata
         self.needleMode = False
 
+
+
     def doInjection(self):
+        """
+        Simula il processo di iniezione per le celle che devono essere iniettate.
+
+        Ogni cella che deve essere iniettata aumenta il proprio tempo di iniezione.
+        Quando il tempo di iniezione raggiunge il massimo, il valore della cella viene modificato
+        in base alla sua condizione corrente. Se la cella e' verde e il suo valore e' inferiore al massimo,
+        il suo valore aumenta di uno; altrimenti, il suo valore diminuisce di uno. Se il valore della cella
+        diventa negativo, la cella viene convertita in verde e il valore assoluto negativo diventa il suo nuovo valore.
+        Viene incrementato il conteggio delle celle nemiche eliminate se una cella nemica viene convertita in verde.
+        Infine, viene ripristinato il flag getNeedle e il tempo di iniezione della cella.
+        """
         maxInjectTime = 30
+        # Scorrere tutte le celle nella lista delle celle
         for cell in self.cellList:
+            # Verifica se la cella deve essere iniettata
             if cell.getNeedle:
+                # Incrementa il tempo di iniezione della cella
                 cell.injectTime += 1
+                # Verifica se il tempo di iniezione e' inferiore o uguale al massimo
                 if cell.injectTime <= maxInjectTime:
+                    # Se la cella e' verde e il suo valore e' inferiore al massimo, aumenta il suo valore di uno
                     if cell.color == GREEN and cell.value < self.maximum:
                         cell.value += 1
                     else:
+                        # Altrimenti, diminuisci il suo valore di uno
                         cell.value -= 1
-                        if cell.value < 0: # turn to GREEN!
+                        # Se il valore diventa negativo, converti la cella in verde
+                        if cell.value < 0:
+                            # Se la cella e' grigia, reimposta il suo valore a 20
                             if cell.color == GRAY:
                                 cell.value = 20
+                            # Se la cella e' un nemico, convertila in verde e incrementa il conteggio delle celle nemiche eliminate
                             else:
                                 cell.value = abs(cell.value)
                                 if cell.name != "EMB":
                                     self.forceMakeCollapse(cell)
                                 self.enemyKilled += 1
+                            # Imposta il colore della cella a verde
                             cell.color = GREEN
-                    #self.drawBubbleEffect(cell.x,cell.y)
                 else:
+                    # Quando il tempo di iniezione raggiunge il massimo, ripristina il flag getNeedle e il tempo di iniezione della cella
                     cell.getNeedle = False
                     cell.injectTime = 0
+
 
     def doTimeAdjust(self):
         if self.mode == "Tutorial":
@@ -533,7 +654,7 @@ class CellWar(object):
             
     def showGameOver(self):
         self.clock.tick(self.fps)
-        winImg = pygame.image.load('result4.jpg')
+        winImg = pygame.image.load('img/result4.jpg')
         self.screen.blit(winImg,(0,self.winImgy))
         font = pygame.font.SysFont("Courier",60,True)
         textObj = font.render("%d"%self.levelChosen,True,(255,255,255))
@@ -547,7 +668,7 @@ class CellWar(object):
 
     def showWin(self):
         self.clock.tick(self.fps)
-        winImg = pygame.image.load('result3.jpg')
+        winImg = pygame.image.load('img/result3.jpg')
         self.screen.blit(winImg,(0,self.winImgy))
         font = pygame.font.SysFont("Courier",60,True)
         textObj = font.render("%d"%self.levelChosen,True,(255,255,255))
@@ -805,7 +926,7 @@ class CellWar(object):
 
     def playShine(self,x,y,do=False):
         if do:
-            image = pygame.image.load(r"BOOM.png").convert_alpha()
+            image = pygame.image.load(r"img/BOOM.png").convert_alpha()
             self.screen.blit(image,(x-90,y-64)) # Adjust the center of BOOM
         
     def isCollide(self,s1,s2):
@@ -1120,39 +1241,39 @@ class CellWar(object):
             self.mode = "Loading"
             self.clock.tick(20)
             self.animateCount += 1
-            self.screen.blit(pygame.image.load("HeadPhone.jpg"),(0,0))
+            self.screen.blit(pygame.image.load("img/HeadPhone.jpg"),(0,0))
             pygame.display.update()
         self.mode = "Main Menu"
         # start playing music in the mainMenu
         self.levelCleared = [0,1,2,3,4,5,6,7,8,9]
         self.menuOption = ["Play","Help","Credit","Achievement"]
-        self.mainImages = [pygame.image.load('TPMenu1.jpg'),\
-                           pygame.image.load('TPMenu2.jpg'),\
-                           pygame.image.load('TPMenu3.jpg'),\
-                           pygame.image.load('TPMenu4.jpg')]
+        self.mainImages = [pygame.image.load('img/TPMenu1.jpg'),\
+                           pygame.image.load('img/TPMenu2.jpg'),\
+                           pygame.image.load('img/TPMenu3.jpg'),\
+                           pygame.image.load('img/TPMenu4.jpg')]
         
         # this is for when choosing backgrounds
-        self.backgroundImages = [pygame.image.load('Skyland.jpg'),\
-                                 pygame.image.load('StoneAge.jpg'),\
-                                 pygame.image.load('Universe.jpg')]
+        self.backgroundImages = [pygame.image.load('img/Skyland.jpg'),\
+                                 pygame.image.load('img/StoneAge.jpg'),\
+                                 pygame.image.load('img/Universe.jpg')]
         
         # this is for background
-        self.bgImagePool = [pygame.image.load('Skyland2.jpg'),\
-                            pygame.image.load('StoneAge2.jpg'),\
-                            pygame.image.load('Universe2.jpg')]
+        self.bgImagePool = [pygame.image.load('img/Skyland2.jpg'),\
+                            pygame.image.load('img/StoneAge2.jpg'),\
+                            pygame.image.load('img/Universe2.jpg')]
         
-        self.helpPages = [pygame.image.load('help1.jpg'),\
-                          pygame.image.load('help2.jpg'),\
-                          pygame.image.load('help3.jpg'),\
-                          pygame.image.load('help4.jpg'),\
-                          pygame.image.load('help5.jpg')]
+        self.helpPages = [pygame.image.load('img/help1.jpg'),\
+                          pygame.image.load('img/help2.jpg'),\
+                          pygame.image.load('img/help3.jpg'),\
+                          pygame.image.load('img/help4.jpg'),\
+                          pygame.image.load('img/help5.jpg')]
         
-        self.winImages = [pygame.image.load('result31.jpg'),\
-                          pygame.image.load('result32.jpg'),\
-                          pygame.image.load('result33.jpg')]
+        self.winImages = [pygame.image.load('img/result31.jpg'),\
+                          pygame.image.load('img/result32.jpg'),\
+                          pygame.image.load('img/result33.jpg')]
 
-        self.gameOverImages = [pygame.image.load('result41.jpg'),\
-                               pygame.image.load('result42.jpg')]
+        self.gameOverImages = [pygame.image.load('img/result41.jpg'),\
+                               pygame.image.load('img/result42.jpg')]
         self.levelPage = "1-3"
         self.doMainMenu()
 
@@ -1168,7 +1289,7 @@ class CellWar(object):
 
     def doBackground(self): # of depth 2
         self.mode = "Choose Background"
-        self.screen.blit(pygame.image.load('BGdefault.jpg'),(0,0))
+        self.screen.blit(pygame.image.load('img/BGdefault.jpg'),(0,0))
         (x,y) = pygame.mouse.get_pos()
         if 37 <= x <= 215 and 35 <= y <= 220:
             self.bgchoice = 0
@@ -1185,7 +1306,7 @@ class CellWar(object):
 
     def doWin(self):
         self.mode = "Win" # shift the self.mode to stop other running functions
-        self.screen.blit(pygame.image.load('result3.jpg'),(0,0))
+        self.screen.blit(pygame.image.load('img/result3.jpg'),(0,0))
         (x,y) = pygame.mouse.get_pos()
         if 162 <= x <= 244 and 558 <= y <= 631:
             self.winchoice = 0
@@ -1209,7 +1330,7 @@ class CellWar(object):
     def doGameOver(self):
         self.mode = "Game Over" # shift the self.mode
        
-        self.screen.blit(pygame.image.load('result4.jpg'),(0,0))
+        self.screen.blit(pygame.image.load('img/result4.jpg'),(0,0))
         (x,y) = pygame.mouse.get_pos()
         if 225 <= x <= 305 and 558 <= y <= 631:
             self.gameOverchoice = 0
@@ -1237,21 +1358,21 @@ class CellWar(object):
     def chooseLevel(self): # of depth 3
         pool = self.levelCleared + [self.levelCleared[-1]+1]
         if self.levelPage == "1-3":
-            self.screen.blit(pygame.image.load('level1-3.jpg'),(0,0))
+            self.screen.blit(pygame.image.load('img/level1-3.jpg'),(0,0))
             self.doLevel1_3()
         elif self.levelPage == "4-6":
             if len(pool) > 4: #[0,1,2,3,4]
-                self.screen.blit(pygame.image.load('level4-6available.jpg'),(0,0))
+                self.screen.blit(pygame.image.load('img/level4-6available.jpg'),(0,0))
                 self.doLevel4_6()
             else:
-                self.screen.blit(pygame.image.load('level4-6unavailable.jpg'),(0,0))
+                self.screen.blit(pygame.image.load('img/level4-6unavailable.jpg'),(0,0))
                 self.undoLevel4_6()
         elif self.levelPage == "7":
             if len(pool) == 8: #[0...7]
-                self.screen.blit(pygame.image.load('level7available.jpg'),(0,0))
+                self.screen.blit(pygame.image.load('img/level7available.jpg'),(0,0))
                 self.doLevel7()
             else:
-                self.screen.blit(pygame.image.load('level7unavailable.jpg'),(0,0))
+                self.screen.blit(pygame.image.load('img/level7unavailable.jpg'),(0,0))
                 self.undoLevel7()
         pygame.display.update()
 
@@ -1259,23 +1380,23 @@ class CellWar(object):
         self.mode = "Choose Level"
         (x,y) = pygame.mouse.get_pos()
         if 252 <= x <= 415 and 243 <= y <= 397:
-            self.screen.blit(pygame.image.load('level1-3sun.jpg'),(0,0))
+            self.screen.blit(pygame.image.load('img/level1-3sun.jpg'),(0,0))
 
         elif 300 <= x <= 382 and 595 <= y <= 672:
-            self.screen.blit(pygame.image.load('level1-3button.jpg'),(0,0))
+            self.screen.blit(pygame.image.load('img/level1-3button.jpg'),(0,0))
 
         elif 533 <= x <= 596 and 279 <= y <= 351:
-            self.screen.blit(pygame.image.load('level1-3arrow.jpg'),(0,0))
+            self.screen.blit(pygame.image.load('img/level1-3arrow.jpg'),(0,0))
 
         pygame.display.update()
 
     def finalLevel1_3(self):
         if len(self.levelCleared) == 1: #[0],initially
-            self.screen.blit(pygame.image.load("level123(1).jpg"),(0,0))
+            self.screen.blit(pygame.image.load("img/level123(1).jpg"),(0,0))
         elif len(self.levelCleared) == 2: #[0,1]
-            self.screen.blit(pygame.image.load("level123(2).jpg"),(0,0))
+            self.screen.blit(pygame.image.load("img/level123(2).jpg"),(0,0))
         else:
-            self.screen.blit(pygame.image.load("level123.jpg"),(0,0))
+            self.screen.blit(pygame.image.load("img/level123.jpg"),(0,0))
         (text,tempLevelCleared,font2) = self.enterInterface()
         warning,maxLevel = (220,470),3
         # Unavailable level display
@@ -1303,18 +1424,18 @@ class CellWar(object):
         self.mode = "Choose Level"
         (x,y) = pygame.mouse.get_pos()
         if 87 <= x <= 154 and 279 <= y <= 355:
-            self.screen.blit(pygame.image.load('level4-6available1.jpg'),(0,0))
+            self.screen.blit(pygame.image.load('img/level4-6available1.jpg'),(0,0))
 
         elif 252 <= x <= 415 and 243 <= y <= 397:
             # choose one of 4-6
-            self.screen.blit(pygame.image.load('level4-6available3.jpg'),(0,0))
+            self.screen.blit(pygame.image.load('img/level4-6available3.jpg'),(0,0))
 
         elif 300 <= x <= 382 and 595 <= y <= 672:
             # press the button
-            self.screen.blit(pygame.image.load('level4-6available2.jpg'),(0,0))
+            self.screen.blit(pygame.image.load('img/level4-6available2.jpg'),(0,0))
 
         elif 533 <= x <= 596 and 279 <= y <= 351:
-            self.screen.blit(pygame.image.load('level4-6available4.jpg'),(0,0))
+            self.screen.blit(pygame.image.load('img/level4-6available4.jpg'),(0,0))
 
         pygame.display.update()
 
@@ -1322,13 +1443,13 @@ class CellWar(object):
         self.mode = "Choose Level"
         (x,y) = pygame.mouse.get_pos()
         if 87 <= x <= 154 and 279 <= y <= 355:
-            self.screen.blit(pygame.image.load('level7available1.jpg'),(0,0))
+            self.screen.blit(pygame.image.load('img/level7available1.jpg'),(0,0))
         elif 252 <= x <= 415 and 243 <= y <= 397:
             # choose one of 4-6
-            self.screen.blit(pygame.image.load('level7available3.jpg'),(0,0))
+            self.screen.blit(pygame.image.load('img/level7available3.jpg'),(0,0))
         elif 300 <= x <= 382 and 595 <= y <= 672:
             # press the button
-            self.screen.blit(pygame.image.load('level7available2.jpg'),(0,0))
+            self.screen.blit(pygame.image.load('img/level7available2.jpg'),(0,0))
         pygame.display.update()
 
     def actLevel4_6(self,x,y):
@@ -1356,11 +1477,11 @@ class CellWar(object):
 
     def finalLevel4_6(self):
         if len(self.levelCleared) == 4: #[0,1,2,3]
-            self.screen.blit(pygame.image.load("level456(1).jpg"),(0,0))
+            self.screen.blit(pygame.image.load("img/level456(1).jpg"),(0,0))
         elif len(self.levelCleared) == 5: #[0,1,2,3,4]
-            self.screen.blit(pygame.image.load("level456(2).jpg"),(0,0))
+            self.screen.blit(pygame.image.load("img/level456(2).jpg"),(0,0))
         else:
-            self.screen.blit(pygame.image.load("level456.jpg"),(0,0))
+            self.screen.blit(pygame.image.load("img/level456.jpg"),(0,0))
         (text,tempLevelCleared,font2) = self.enterInterface()
         warning,limit1,limit2 = (220,470),6,4
         if len(text) == 1 and ((eval(text) not in tempLevelCleared)\
@@ -1373,11 +1494,11 @@ class CellWar(object):
         self.mode = "Choose Level"
         (x,y) = pygame.mouse.get_pos()
         if 87 <= x <= 154 and 280 <= y <= 352:
-            image = pygame.image.load('level4-6unavailable1.jpg')
+            image = pygame.image.load('img/level4-6unavailable1.jpg')
             self.screen.blit(image,(0,0))
         elif 300 <= x <= 382 and 595 <= y <= 672:
             # press the button
-            image = pygame.image.load('level4-6unavailable2.jpg')
+            image = pygame.image.load('img/level4-6unavailable2.jpg')
             self.screen.blit(image,(0,0))
         pygame.display.update()
 
@@ -1385,11 +1506,11 @@ class CellWar(object):
         self.mode = "Choose Level"
         (x,y) = pygame.mouse.get_pos()
         if 87 <= x <= 154 and 280 <= y <= 352:
-            image = pygame.image.load('level7unavailable1.jpg')
+            image = pygame.image.load('img/level7unavailable1.jpg')
             self.screen.blit(image,(0,0))
         elif 300 <= x <= 382 and 595 <= y <= 672:
             # press the button
-            image = pygame.image.load('level7unavailable2.jpg')
+            image = pygame.image.load('img/level7unavailable2.jpg')
             self.screen.blit(image,(0,0))
         pygame.display.update()
 
@@ -1417,7 +1538,7 @@ class CellWar(object):
         
 
     def runMenuOption(self,option): # choosing at depth 1
-        pygame.mixer.Sound('Confirm.wav').play(0)
+        pygame.mixer.Sound('music/Confirm.wav').play(0)
         if option == "Play":
             # Should choose level first
             self.doBackground()
@@ -1432,7 +1553,7 @@ class CellWar(object):
 
     def runCredit(self):
         self.mode = "Credit"
-        interface = pygame.image.load('GrayImage2.jpg')
+        interface = pygame.image.load('img/GrayImage2.jpg')
         self.screen.blit(interface,(0,0))
         displayCredit(self.screen,self.creInitx,self.creInity)
         if self.animateCount % 2 == 0:
@@ -1451,7 +1572,7 @@ class CellWar(object):
     def doAchievement(self):
         self.achievement = [self.gamesPlayed,self.loses,self.enemyKilled,\
                      self.needleLeft,self.totalMerge,self.totalAssist]
-        self.screen.blit(pygame.image.load("Achievement1.jpg"),(0,0))
+        self.screen.blit(pygame.image.load("img/Achievement1.jpg"),(0,0))
         gamesPlayed = self.achievement[0]
         loses,enemyKilled = self.achievement[1],self.achievement[2]
         needleLeft,totalMerge = self.achievement[3],self.achievement[4]
@@ -1489,14 +1610,14 @@ class CellWar(object):
         pygame.display.update()
 
     def findTitleImg(self,title):
-        titleImageList = [pygame.image.load(r"Achievement2(0).jpg"),\
-                          pygame.image.load(r"Achievement2(1).jpg"),\
-                          pygame.image.load(r"Achievement2(2).jpg"),\
-                          pygame.image.load(r"Achievement2(3).jpg"),\
-                          pygame.image.load(r"Achievement2(12).jpg"),\
-                          pygame.image.load(r"Achievement2(13).jpg"),\
-                          pygame.image.load(r"Achievement2(23).jpg"),\
-                          pygame.image.load(r"Achievement2.jpg")]
+        titleImageList = [pygame.image.load(r"img/Achievement2(0).jpg"),\
+                          pygame.image.load(r"img/Achievement2(1).jpg"),\
+                          pygame.image.load(r"img/Achievement2(2).jpg"),\
+                          pygame.image.load(r"img/Achievement2(3).jpg"),\
+                          pygame.image.load(r"img/Achievement2(12).jpg"),\
+                          pygame.image.load(r"img/Achievement2(13).jpg"),\
+                          pygame.image.load(r"img/Achievement2(23).jpg"),\
+                          pygame.image.load(r"img/Achievement2.jpg")]
         if title == []:
             return titleImageList[0]
         elif len(title) == 1:
@@ -1512,20 +1633,20 @@ class CellWar(object):
         self.tutorialStep = 2 # welcome!
 
     def loadImageList(self):
-        self.imageList = [pygame.image.load('GreenCell4.png'),\
-                     pygame.image.load('GreenCell9.png'),\
-                     pygame.image.load('GreenCell6.png'),\
-                     pygame.image.load('GreenCell8.png'),\
-                     pygame.image.load('GreenCell5.png'),\
-                     pygame.image.load('GreenCell7.png'),\
-                     pygame.image.load('GreenCell3.png'),]
-        self.needleImg,self.needleMode = pygame.image.load('needle.png'),False
+        self.imageList = [pygame.image.load('img/GreenCell4.png'),\
+                     pygame.image.load('img/GreenCell9.png'),\
+                     pygame.image.load('img/GreenCell6.png'),\
+                     pygame.image.load('img/GreenCell8.png'),\
+                     pygame.image.load('img/GreenCell5.png'),\
+                     pygame.image.load('img/GreenCell7.png'),\
+                     pygame.image.load('img/GreenCell3.png'),]
+        self.needleImg,self.needleMode = pygame.image.load('img/needle.png'),False
 
     def initImgAndMusic(self):
         self.winImgy = -700
         self.bgimage = self.bgImagePool[self.bgchoice]
         
-       # self.music = pygame.mixer.Sound('Christian.ogg')
+       # self.music = pygame.mixer.Sound('music/Christian.ogg')
        # self.musicChannel = self.music.play(-1)
         self.loadImageList()       
         # set self.animateCount to zero again
@@ -1584,7 +1705,7 @@ class Target(pygame.sprite.Sprite):
 
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("sprite.jpg").convert()
+        self.image = pygame.image.load("img/sprite.jpg").convert()
 
         self.rect = self.image.get_rect()
     
@@ -2055,7 +2176,7 @@ class Chain(object):
             self.subtractCellValue = True
         if dist(newx,newy,self.endx,self.endy,regularRad):
             self.shouldGrow = False
-           # collide = pygame.mixer.Sound('Collide.ogg')
+           # collide = pygame.mixer.Sound('music/Collide.ogg')
            # collide.play(0)
            # collide.set_volume(30)
             self.subtractCellValue = False

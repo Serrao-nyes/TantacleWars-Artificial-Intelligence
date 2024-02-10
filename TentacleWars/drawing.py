@@ -1,56 +1,64 @@
 #!/usr/bin/env python
- 
+
+# Import delle librerie necessarie
 import pygame
 from pygame.locals import *
 from sys import exit
- 
 from random import *
 from math import pi
- 
+
+# Inizializzazione di Pygame
 pygame.init()
+
+# Creazione della finestra di gioco
 screen = pygame.display.set_mode((640, 480), 0, 32)
+
+# Lista per memorizzare i punti del tracciato del mouse
 points = []
- 
+
+# Ciclo principale del gioco
 while True:
- 
+
+    # Gestione degli eventi
     for event in pygame.event.get():
         if event.type == QUIT:
+            # Se l'evento 猫 di uscita, esce dal programma
             exit()
         if event.type == KEYDOWN:
-            # 按任意键可以清屏并把点回复到原始状态
+            # Se il tasto premuto 猫 una qualsiasi tastiera, cancella i punti memorizzati e riempie lo schermo di bianco
             points = []
-            screen.fill((255,255,255))
+            screen.fill((255, 255, 255))
         if event.type == MOUSEBUTTONDOWN:
-            screen.fill((255,255,255))
-            # 画随机矩形
-            rc = (randint(0,255), randint(0,255), randint(0,255))
-            rp = (randint(0,639), randint(0,479))
-            rs = (639-randint(rp[0], 639), 479-randint(rp[1], 479))
+            # Se viene premuto il pulsante del mouse, disegna un rettangolo, un cerchio e traccia la traiettoria del mouse
+            screen.fill((255, 255, 255))
+            # Disegna un rettangolo con colori casuali
+            rc = (randint(0, 255), randint(0, 255), randint(0, 255))
+            rp = (randint(0, 639), randint(0, 479))
+            rs = (639 - randint(rp[0], 639), 479 - randint(rp[1], 479))
             pygame.draw.rect(screen, rc, Rect(rp, rs))
-            # 画随机圆形
-            rc = (randint(0,255), randint(0,255), randint(0,255))
-            rp = (randint(0,639), randint(0,479))
+            # Disegna un cerchio con colori casuali
+            rc = (randint(0, 255), randint(0, 255), randint(0, 255))
+            rp = (randint(0, 639), randint(0, 479))
             rr = randint(1, 200)
             pygame.draw.circle(screen, rc, rp, rr)
-            # 获得当前鼠标点击位置
+            # Ottiene la posizione corrente del mouse
             x, y = pygame.mouse.get_pos()
+            # Aggiunge la posizione corrente alla lista dei punti
             points.append((x, y))
-            # 根据点击位置画弧线
-            angle = (x/639.)*pi*2.
-            pygame.draw.arc(screen, (0,0,0), (0,0,639,479), 0, angle, 3)
-            # 根据点击位置画椭圆
+            # Disegna l'arco in base alla posizione del mouse
+            angle = (x / 639.) * pi * 2.
+            pygame.draw.arc(screen, (0, 0, 0), (0, 0, 639, 479), 0, angle, 3)
+            # Disegna un'ellisse in base alla posizione del mouse
             pygame.draw.ellipse(screen, (0, 255, 0), (0, 0, x, y))
-            # 从左上和右下画两根线连接到点击位置
+            # Disegna linee dal bordo della finestra alla posizione del mouse
             pygame.draw.line(screen, (0, 0, 255), (0, 0), (x, y))
             pygame.draw.line(screen, (255, 0, 0), (640, 480), (x, y))
-            # 画点击轨迹图
+            # Disegna una serie di linee connettendo i punti del tracciato del mouse
             if len(points) > 1:
                 pygame.draw.lines(screen, (155, 155, 0), False, points, 2)
-            # 和轨迹图基本一样，只不过是闭合的，因为会覆盖，所以这里注释了
-            #if len(points) >= 3:
-            #    pygame.draw.polygon(screen, (0, 155, 155), points, 2)
-            # 把每个点画明显一点
+            # Disegna un cerchio per ogni punto nella lista dei punti
             for p in points:
                 pygame.draw.circle(screen, (155, 155, 155), p, 3)
- 
+
+    # Aggiornamento della schermata
     pygame.display.update()
