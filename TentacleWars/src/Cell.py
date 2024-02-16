@@ -1,86 +1,135 @@
-from languages.predicate import Predicate
 import pygame
+from pygame.locals import *
 import random
 import math
+import pickle
+from languages.predicate import Predicate
 
 
-# Definizione dei colori come costanti
-GREEN = (47,171,51)
-RED = (200,0,0)
-GRAY = (55,55,55)
-WHITE = (255,255,255)
-WARMYELLOW = (255,255,85)
+GREEN = (47, 171, 51)
+RED = (200, 0, 0)
+GRAY = (55, 55, 55)
+WHITE = (255, 255, 255)
+WARMYELLOW = (255, 255, 85)
 
 
-class Cell(Predicate):
-    predicate_name = "Cell"
+class avgDelta_Fact(Predicate):
+    predicate_name="avgDelta_Fact"
+    def __init__(self, index, value):
+        self.index = index
+        self.value = value
 
+    def __str__(self):
+        return f"avgDelta_Fact({self.index},\"{self.value}\")"
+
+
+class Cell_Predicate(Predicate):
+    predicate_name="cell"
+    def __init__(self, x=None, y=None, value=None, color=None, lastValue=None, name=None, state=None, loss=None,
+                 avgDelta=None, getNeedle=None, injectTime=None, fakeNeedle=None):
+        Predicate.__init__(self,[("x"), ("y"), ("value"), ("color"), ("lastValue"), ("name"), ("state"), ("loss"), ("getNeedle"), ("injectTime"), ("fakeNeedle")])
+        self.x = x
+        self.y = y
+        self.color = color  # green by default
+        self.radius = 23
+        self.outerRadius = self.radius + 8
+        self.lastValue = lastValue
+        self.value = value
+        self.name = name
+        self.state = state
+        self.loss = loss
+        self.avgDelta = avgDelta
+        self.getNeedle = getNeedle  # being injected?
+        self.injectTime = injectTime  # start counting the time during Injection from 0
+        self.fakeNeedle = fakeNeedle  # needle left is 0
+
+        # Get and Set For EMBASP using, Getting and Setting "Cell" predicate terms
+    def get_x(self):
+        return self.x
+
+    def set_x(self, x):
+            self.x = x
+
+    def get_y(self, y):
+        self.y = y
+
+    def get_value(self):
+        return self.value
+
+    def set_value(self, value):
+        self.value = value
+
+    def get_color(self):
+        return self.color
+
+    def set_color(self, color):
+        self.color = color
+
+    def get_lastValue(self):
+        return self.lastValue
+
+    def set_lastValue(self, lastValue):
+        self.lastValue = lastValue
+
+    def get_name(self):
+        return self.name
+
+    def set_name(self, name):
+        self.name = name
+
+    def get_state(self):
+        return self.state
+
+    def set_state(self, state):
+        self.state = state
+
+    def get_loss(self):
+        return self.loss
+
+    def set_loss(self, loss):
+        self.loss = loss
+
+
+    def get_getNeedle(self):
+        return self.getNeedle
+
+    def set_getNeedle(self, getNeedle):
+        self.getNeedle = getNeedle
+
+    def get_injectTime(self):
+        return self.injectTime
+
+    def set_injectTime(self, injectTime):
+        self.injectTime = injectTime
+
+    def get_fakeNeedle(self):
+        return self.fakeNeedle
+
+    def set_fakeNeedle(self, fakeNeedle):
+        self.fakeNeedle = fakeNeedle
+
+    def __str__(self):
+        return ("Cell(" + str(self.x) + "," + str(self.y) + "," + str(self.value) + str(self.color) + "," + str(
+                self.lastValue) + "," + str(self.name) + "," + str(self.state) + "," + str(self.loss) + "," + str(
+                self.avgDelta) + "," + str(self.getNeedle) + "," + str(self.injectTime) + "," + str(self.fakeNeedle)
+                + ").")
+
+
+class Cell(object):
     def __init__(self, x, y, value=20, color=GREEN):
-        Predicate.__init__(self, [("x"), ("y"), ("value"), ("color"), ("lastValue"), ("name"), ("state"), ("loss"), ("d"),
-                                  ("avgDelta"), ("getNeedle"), ("injectTime"), ("fakeNeedle")])
         self.x, self.y = x, y
         self.color = color  # green by default
         self.radius = 23
         self.outerRadius = self.radius + 8
         self.lastValue = self.value = value
         self.name = "ATT"
-        self.state, self.loss = None, 0
-        self.d, self.avgDelta = dict(), []
+        self.state = None
+        self.loss = 0
+        self.avgDelta = []
         self.getNeedle = False  # being injected?
         self.injectTime = 0  # start counting the time during Injection from 0
         self.fakeNeedle = False  # needle left is 0
-
-    #Get and Set For EMBASP using, Getting and Setting "Cell" predicate terms
-    def get_x(self):
-        return self.x
-    def set_x(self,x):
-        self.x=x
-    def get_y(self,y):
-        self.y=y
-    def get_value(self):
-        return self.value
-    def set_value(self,value):
-        self.value=value
-    def get_color(self):
-        return self.color
-    def set_color(self,color):
-        self.color = color
-    def get_lastValue(self):
-        return self.lastValue
-    def set_lastValue(self,lastValue):
-        self.lastValue=lastValue
-    def get_name(self):
-        return self.name
-    def set_name(self,name):
-        self.name=name
-    def get_state(self):
-        return self.state
-    def set_state(self,state):
-        self.state=state
-    def get_loss(self):
-        return self.loss
-    def set_loss(self,loss):
-        self.loss=loss
-    def get_d(self):
-        return self.d
-    def set_d(self,d):
-        self.d=d
-    def get_avgDelta(self):
-        return self.get_avgDelta()
-    def set_avgDelta(self,avgDelta):
-        self.avgDelta=avgDelta
-    def get_getNeedle(self):
-        return self.getNeedle
-    def set_getNeedle(self,getNeedle):
-        self.getNeedle=getNeedle
-    def get_injectTime(self):
-        return self.injectTime
-    def set_injectTime(self,injectTime):
-        self.injectTime=injectTime
-    def get_fakeNeedle(self):
-        return self.fakeNeedle
-    def set_fakeNeedle(self,fakeNeedle):
-        self.fakeNeedle=fakeNeedle
+        self.Predicate = Cell_Predicate
 
     def drawCell(self, surface):
         center = (self.x, self.y)
@@ -96,17 +145,14 @@ class Cell(Predicate):
                 size = random.randint(2, 6)
                 self.drawSideCircle(surface, i, size)
 
-
     def __lt__(self, other):
         return True
-
 
     def drawSideCircle(self, surface, ang, radius):
         angle = ang * math.pi / 4
         cx, cy = int(round(self.x + self.outerRadius * math.cos(angle))), \
             int(round(self.y + self.outerRadius * math.sin(angle)))
         pygame.draw.circle(surface, self.color, (cx, cy), radius, 0)
-
 
     def drawValue(self, surface):
         my_font = pygame.font.SysFont("", 21, True)
@@ -116,15 +162,14 @@ class Cell(Predicate):
         else:
             surface.blit(textObj, (self.x - 5, self.y - 10.5))
 
-
     def findDistanceInChainUnits(self, targetx, targety):
-        # for Artificial Intelligence use
-        # chain unit (dot) is of length of 3
-        geoDistance = ((targetx - self.x) ** 2 + (targety - self.y) ** 2) ** 0.5
+
+        geoDistance = ((targetx-self.x)**2+(targety-self.y)**2)**0.5
         dotNumber = geoDistance / (3 * 2)  # diameter
         valueNeed = dotNumber / 2
+        print(valueNeed)
         return valueNeed
-
+    #QUESTO METODO VIENE UTILIZZATO SOLO DALL'IA
 
     def findAllies(self, allCellList):
         # in game, allCellList should be self.cellList
@@ -145,10 +190,9 @@ class Cell(Predicate):
         else:
             return 0  # force the cell to be in defense mode
 
-
     def findEnemiesWithinDistance(self, allCellList):
         """ return self.grayList and self.allOtherList as a tuple """
-        # for AI use.
+        # for AI use. 
         self.enemiesList = []
         grayList = []  # higher priority should be put in front
         enemyAvg = 0
@@ -174,7 +218,6 @@ class Cell(Predicate):
         else:
             return 100  # force the cell to be in defense mode
 
-
     def findEmergencyCell(self):
         alliesList = self.alliesList
         for ((allyValue, allyName, ally)) in alliesList:
@@ -182,7 +225,6 @@ class Cell(Predicate):
             if ally.state == "Alert" and allyName == "ATT":
                 return ally
         return None
-
 
     def think(self, environment, animateCount):
         # the thinking process refers to the AI
@@ -213,7 +255,6 @@ class Cell(Predicate):
         elif self.value >= highKey:
             self.considerEmerg(emergency, allyAvg, enemyAvg)
 
-
     def considerEmerg(self, emergency, allyAvg, enemyAvg):
         lowKey, highKey = 5, 15
         if emergency != None:
@@ -231,7 +272,6 @@ class Cell(Predicate):
             else:
                 self.state = "Defense"
 
-
     def update(self, environment, animateCount):
         # update every aspect: camp, current mode, etc.
         # ONLY ENEMY CELL NEEDS TO UPDATE.
@@ -239,13 +279,6 @@ class Cell(Predicate):
         # print self.x,self.y,self.state
         # change mode,find friends,find enemies
 
-
     def __hash__(self):
         hashable = (self.x, self.y)
         return hash(hashable)
-
-
-    def __str__(self):
-        return "Cell(" + str(self.x) + "," + str(self.y) + "," + str(self.value) + str(self.color) + "," + str(
-            self.lastValue) + "," + str(self.name) + str(self.state) + str(self.loss) + "," + str(self.d) + "," + str(
-            self.avgDelta) + str(self.getNeedle) + "," + str(self.injectTime) + "," + str(self.fakeNeedle) + ")"
