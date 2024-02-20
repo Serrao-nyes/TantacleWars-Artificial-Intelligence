@@ -30,7 +30,7 @@ distance_in_chain_units(CellX, CellY, TargetX, TargetY, ChainUnits) :-
     distance(CellX, CellY, TargetX, TargetY, Distance),
     DotNumber = Distance / (UnitLength * 2), % Calcolo del numero di punti (diametro = 2 * lunghezza unità di catena)
     ChainUnits = DotNumber / 2.
-    
+
 
 
 

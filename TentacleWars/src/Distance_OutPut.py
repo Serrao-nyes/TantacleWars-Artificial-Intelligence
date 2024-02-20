@@ -1,5 +1,5 @@
 # from lib.embasp.languages.predicate import Predicate
-from languages.predicate import Predicate
+from TentacleWars.lib.embasp.languages.predicate import Predicate
 
 
 class Distannce_OutPut(Predicate):

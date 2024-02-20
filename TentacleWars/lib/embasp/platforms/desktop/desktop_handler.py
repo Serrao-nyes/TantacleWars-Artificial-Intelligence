@@ -1,4 +1,4 @@
-from ...base.handler import Handler
+from TentacleWars.lib.embasp.base.handler import Handler
 
 
 class DesktopHandler(Handler):

@@ -1,7 +1,7 @@
-from parsers.asp.asp_parser import ASPParser
+from TentacleWars.lib.parsers.asp.asp_parser import ASPParser
 
-from ..mapper import Mapper
-from .symbolic_constant import SymbolicConstant
+from TentacleWars.lib.embasp.languages.mapper import Mapper
+from TentacleWars.lib.embasp.languages.asp.symbolic_constant import SymbolicConstant
 
 
 class ASPMapper(Mapper):

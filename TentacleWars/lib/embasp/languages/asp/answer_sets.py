@@ -1,10 +1,10 @@
 import sys
 from abc import ABCMeta
 
-from parsers.asp.asp_data_collection import ASPDataCollection
+from TentacleWars.lib.parsers.asp.asp_data_collection import ASPDataCollection
 
-from ...base.output import Output
-from .answer_set import AnswerSet
+from TentacleWars.lib.embasp.base.output import Output
+from TentacleWars.lib.embasp.languages.asp.answer_set import AnswerSet
 
 
 class AnswerSets(Output, ASPDataCollection):

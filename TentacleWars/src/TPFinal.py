@@ -9,7 +9,7 @@ import time
 import heapq
 from creditPage import displayCredit
 from Cell import Cell
-
+from AiHandler import AiHandler
 
 # Definizione dei colori come costanti
 GREEN = (47, 171, 51)
@@ -1632,6 +1632,8 @@ class CellWar(object):
     def levelControl(self, level):  # which level?
         return level.cellList
 
+
+
     def run(self):
         pygame.mixer.pre_init(44010, 16, 2, 4096)  # setting the music environment
         pygame.init()
@@ -1639,6 +1641,7 @@ class CellWar(object):
         # initialize the screen
         self.screenSize = (700, 700)
         self.screen = pygame.display.set_mode(self.screenSize)
+
         pygame.display.set_caption("Tentacle Wars")
 
         # initialize clock
@@ -1647,7 +1650,10 @@ class CellWar(object):
         self.dealCell = "ATT"
         self.animateCount = 0
         self.menuInit()
+        aiPlayer = AiHandler()
+
         while (self.mode != "Done"):
+            aiPlayer.execute()
             self.timerFired()
 
 
@@ -1669,6 +1675,7 @@ class Embracer(Cell):
         self.name = "EMB"
         self.increaseCount = 0
         self.moveJudge = False
+
 
     def drawCell(self, surface):
         # print self.name,self.x,self.y
@@ -1735,6 +1742,7 @@ class Embracer(Cell):
             return defaultReturn  # force the cell to be in defense mode
 
     def think(self, environment, animateCount):
+
         # the thinking process refers to the AI
         enemyAvg = self.findEnemiesWithinDistance(environment)
         allyAvg = self.findAllies(environment)
@@ -1754,7 +1762,10 @@ class Embracer(Cell):
             else:
                 self.state = "Defense"
 
+
+
     def update(self, environment, animateCount):
+
         # update every aspect: camp, current mode, etc.
         # ONLY ENEMY CELL NEEDS TO UPDATE.
         self.think(environment, animateCount)

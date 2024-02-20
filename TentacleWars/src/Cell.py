@@ -3,7 +3,8 @@ from pygame.locals import *
 import random
 import math
 import pickle
-from languages.predicate import Predicate
+from TentacleWars.lib.embasp.languages.predicate import Predicate
+
 
 
 GREEN = (47, 171, 51)
@@ -24,7 +25,7 @@ class avgDelta_Fact(Predicate):
 
 
 class Cell_Predicate(Predicate):
-    predicate_name="cell"
+    predicate_name="Cell"
     def __init__(self, x=None, y=None, value=None, color=None, lastValue=None, name=None, state=None, loss=None,
                  avgDelta=None, getNeedle=None, injectTime=None, fakeNeedle=None):
         Predicate.__init__(self,[("x"), ("y"), ("value"), ("color"), ("lastValue"), ("name"), ("state"), ("loss"), ("getNeedle"), ("injectTime"), ("fakeNeedle")])
@@ -48,9 +49,12 @@ class Cell_Predicate(Predicate):
         return self.x
 
     def set_x(self, x):
-            self.x = x
+        self.x = x
 
-    def get_y(self, y):
+    def get_y(self):
+        return self.y
+
+    def set_y(self, y):
         self.y = y
 
     def get_value(self):
@@ -131,6 +135,7 @@ class Cell(object):
         self.fakeNeedle = False  # needle left is 0
         self.Predicate = Cell_Predicate
 
+
     def drawCell(self, surface):
         center = (self.x, self.y)
         color = WHITE if not self.getNeedle else GREEN
@@ -167,7 +172,7 @@ class Cell(object):
         geoDistance = ((targetx-self.x)**2+(targety-self.y)**2)**0.5
         dotNumber = geoDistance / (3 * 2)  # diameter
         valueNeed = dotNumber / 2
-        print(valueNeed)
+
         return valueNeed
     #QUESTO METODO VIENE UTILIZZATO SOLO DALL'IA
 
@@ -276,6 +281,7 @@ class Cell(object):
         # update every aspect: camp, current mode, etc.
         # ONLY ENEMY CELL NEEDS TO UPDATE.
         self.think(environment, animateCount)
+
         # print self.x,self.y,self.state
         # change mode,find friends,find enemies
 
