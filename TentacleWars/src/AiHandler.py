@@ -29,7 +29,7 @@ class AiHandler():
     #if platform.system() == "Windows":
         #executable_name = "executable/dlv-2.1.1-windows64.exe"
     executable_name = "/home/giu/PycharmProjects/TantacleWars-Artificial-Intelligence/TentacleWars/executable/dlv-2.1.1-linux-x86_64"
-
+#comm
     def __init__(self):
         self.handler = DesktopHandler(DLV2DesktopService(AiHandler.executable_name))
         ASPMapper.get_instance().register_class(Cell_Predicate)
