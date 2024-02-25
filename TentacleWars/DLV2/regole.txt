@@ -1,0 +1,47 @@
+%Nodo(Id,Truppe,Fazione). 0<=Truppe<=150
+%Id: chiave primaria di riconoscimento di un nodo (il nome)
+%Truppe: quante truppe ha quel determinato nodo
+%Fazione: ci sono 3 possibili fazioni:p(layer),e(nemy),n(eutral).
+%Arco(N1,N2):adiacenza tra due nodi
+%Regole: si gioca su un grafo non orientato completamente connesso.
+%vince il primo che conquista tutte le basi.
+%valore massimo di truppe su un Nodo:150
+Arco(A,B):-Arco(B,A).
+%-----------------------------------------------------------
+
+%guess
+#show Invio/2.
+Invio(N1,N2) | NonInvio(N1,N2):- Nodo(N1,_,_),Nodo(N2,_,_).
+
+%Distanza(N1,N2,Z):-Arco(N1,N2),Z=0.
+%Distanza(N1,N3,Z):-Arco(N1,N2),Distanza(N2,N3,K),Z=K+1.
+
+
+%posso fare solo una scelta
+:-#count{N1,N2 : Invio(N1,N2)}!=1.
+
+%non posso autoinviarmi truppe
+:- Invio(N1,N1).
+
+%posso inviare solo dove esistono archi
+:- Invio(N1,N2), not Arco(N1,N2).
+
+%SE POSSO MANGIARE, DEVO MANGIARE-SEMPRE
+:~Nodo(N1,T1,e),Nodo(N2,T2,F),F!=e,N1!=N2,T1>T2,not Invio(N1,N2). [1@4,N1,N2]
+
+%nel caso in cui non posso mangiare, ma posso dare una mano, supporto. LIVELLO MEDIO
+:~Nodo(N1,T1,e),Nodo(N2,T2,e),Nodo(N3,T3,p),T1+T2>T3,Arco(N1,N3),not Invio(N2,N1),not dif(1). [1@3,N1,N2,N3]
+
+%SE MI STANNO PER MANGIARE, METTO DA PARTE LE TRUPPE E RITORNO A MANGIARLO,LIVELLO DIFFICILE
+:~Nodo(N1,T1,e),Nodo(N2,T2,p),T2>T1,Arco(N2,N1),Nodo(N3,T3,e),Arco(N1,N3),not Arco(N2,N3),T1+T3>T2,not Invio(N1,N3),not dif(1),not dif(2).[1@2,N1,N2,N3]
+
+%SE MI STANNO PER MANGIARE MI STIPO LE TRUPPE DA UN ALTRA PARTE, LIVELLO DIFFICILE
+:~Nodo(N1,T1,e),Nodo(N2,T2,p),T2>T1,Arco(N2,N1),Nodo(N3,_,e),Arco(N1,N3),not Invio(N1,N3),not dif(1),not dif(2).[1@1,N1,N2,N3]
+
+
+
+
+
+
+
+

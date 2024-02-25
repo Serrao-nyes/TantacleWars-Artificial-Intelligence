@@ -16,8 +16,18 @@ GRAY = (55,55,55)
 WHITE = (255,255,255)
 WARMYELLOW = (255,255,85)
 
+int2 = 2
+int1 = 1
+
+from DLVhandler import DLVhandler
+
+
 class CellWar(object):
     def __init__(self):
+        super().__init__()
+        self.handler = DLVhandler()
+        self.int1 = 1  # Example initial value
+        self.int2 = 2  # Example initial value
         # Inizializzazione delle statistiche e dei punteggi 
         self.gamesPlayed = 0
         self.loses = 0
@@ -28,6 +38,14 @@ class CellWar(object):
         self.achievement = [self.gamesPlayed,self.loses,self.enemyKilled,\
                          self.needleLeft,self.totalMerge,self.totalAssist]
         self.fadeTime = 3000 # Tempo di dissolvenza della musica
+
+    def updateLogic(self):
+        # Update ASP facts based on current game state
+        self.handler.setFatti(self.int1, self.int2)
+        self.handler.trasferisciInDLV()
+        solution = self.handler.getSoluzione()
+        print("Updated Solution:", solution)
+        # Process the solution as needed for your game logic
 
     # Metodo per salvare e caricare i punteggi
     def saveLoad(self):
@@ -1680,6 +1698,8 @@ class CellWar(object):
         return level.cellList
     
     def run(self):
+
+        
         pygame.mixer.pre_init(44010,16,2,4096) # setting the music environment
         pygame.init()      
         
@@ -1695,9 +1715,15 @@ class CellWar(object):
         self.animateCount = 0
         self.menuInit()
         while (self.mode != "Done"):
-            self.timerFired() 
+            self.timerFired()
 
+            # Example: Update ASP logic at certain intervals or based on events
+            if self.animateCount % 60 == 0:  # Adjust according to your game's logic
+                self.int1 += 1  # Update these based on actual game events
+                self.int2 += 1
+                self.updateLogic()  # Update and apply ASP logic
 
+        pygame.quit()
         
                 
 class Target(pygame.sprite.Sprite):
@@ -2243,3 +2269,17 @@ def testDist():
 testFindIntersection()
 testDist()
 
+# Below is the snippet for testing
+if __name__ == "__main__":
+    # Instantiate the handler
+    handler = DLVhandler()
+
+    # Set the facts (you can change these values based on your test)
+    handler.setFatti(5, 10)
+
+    # Transfer the updated facts to the DLV program
+    handler.trasferisciInDLV()
+
+    # Run the solver and print the solution
+    solution = handler.getSoluzione()
+    print("Solution:", solution)
