@@ -730,21 +730,10 @@ class CellWar(object):
     def AIControl(self):
         level = self.levelChosen
         for cell in self.cellList:
-            do = random.randint(1,2) # not move in every round, but just some
-            if cell.color != GRAY and cell.color != GREEN and do == 1:
-                # filter out enemy cells, excluding neutral ones.
-                modifiedCellList = []
-                for other in self.cellList:
-                    try:
-                        if not self.testCellInList(other,self.dic[cell]) and\
-                           other.x != cell.x:
-                            # current target
-                            modifiedCellList.append(other)
-                    except: # meaning self.dic[cell] = -1! NO CHAIN AT ALL!
-                        modifiedCellList.append(other)
+
                 if cell.name == "ATT":
                     # feed with the latest cellList and info
-                    cell.update(modifiedCellList,self.animateCount)
+                    cell.update(self.cellList,self.animateCount)
                     if cell.state == "Attack":
                         self.AICellAttack(cell)
                     elif cell.state == "Defense":
@@ -755,7 +744,7 @@ class CellWar(object):
                 if cell.name == "EMB":
                     judge = random.randint(1,10)
                     if 1 <= judge <= 3:
-                        cell.update(modifiedCellList,self.animateCount)
+                        cell.update(self.cellList,self.animateCount)
                         self.AIEMBcontrol(cell)
                     else:
                         pass
